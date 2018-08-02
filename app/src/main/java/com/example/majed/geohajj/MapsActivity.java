@@ -3,6 +3,7 @@ package com.example.majed.geohajj;
 import android.content.Context;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -60,7 +61,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public boolean onActionSelected(SpeedDialActionItem speedDialActionItem) {
                 switch (speedDialActionItem.getId()) {
                     case R.id.fab_link:
-//                        Toast.makeText("Link action clicked!").show();
+                        Log.i("Link action clicked!","Link action clicked!");
                         return false; // true to keep the Speed Dial open
                     default:
                         return false;
