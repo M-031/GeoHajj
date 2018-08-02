@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <item name="fab_link" type="id" />
-    <item name="fab_action2" type="id" />
-    <item name="fab_action3" type="id" />
-    <item name="fab_action4" type="id" />
+    <item name="fab_bus" type="id" />
+    <item name="fab_camp" type="id" />
+    <item name="fab_crowd" type="id" />
+    <item name="fab_emergency" type="id" />
+    <item name="fab_fire" type="id" />
+    <item name="fab_info" type="id" />
+    <item name="fab_lost" type="id" />
+    <item name="fab_metro" type="id" />
+    <item name="fab_resturant" type="id" />
+    <item name="fab_trash" type="id" />
 </resources>
