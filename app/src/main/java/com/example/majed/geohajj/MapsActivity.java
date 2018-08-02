@@ -15,6 +15,8 @@ import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.webkit.WebView;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -26,6 +28,16 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.leinardi.android.speeddial.SpeedDialActionItem;
 import com.leinardi.android.speeddial.SpeedDialView;
+import android.view.View;
+import android.view.WindowManager;
+
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+
+
+
+
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener,
         GoogleMap.OnMyLocationClickListener, ActivityCompat.OnRequestPermissionsResultCallback, LocationListener {
@@ -36,6 +48,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
      * @see #onRequestPermissionsResult(int, String[], int[])
      */
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private View mView;
+
+    private WindowManager.LayoutParams mParams;
+    private WindowManager mWindowManager;
 
     /**
      * Flag indicating whether a requested permission has been denied after returning in
@@ -51,6 +67,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -173,11 +190,20 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onProviderDisabled(String provider) { }
+    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+        view.loadUrl(url);
+        return true;
+    }
+
+
 
     public void createMenu() {
+
+
         SpeedDialView speedDialView = findViewById(R.id.speedDial);
         speedDialView.addActionItem(
-                new SpeedDialActionItem.Builder(R.id.fab_bus, R.drawable.ic_bus).create()
+
+        new SpeedDialActionItem.Builder(R.id.fab_bus, R.drawable.ic_bus).create()
         );
         speedDialView.addActionItem(
                 new SpeedDialActionItem.Builder(R.id.fab_camp, R.drawable.ic_camp).create()
@@ -189,12 +215,36 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 new SpeedDialActionItem.Builder(R.id.fab_metro, R.drawable.ic_metro).create()
         );
 
+        final MapsActivity that = this;
         speedDialView.setOnActionSelectedListener(new SpeedDialView.OnActionSelectedListener() {
             @Override
             public boolean onActionSelected(SpeedDialActionItem speedDialActionItem) {
                 switch (speedDialActionItem.getId()) {
                     case R.id.fab_bus:
-                        Log.i("Link action clicked!","Link action clicked!");
+                        AlertDialog.Builder helpBuilder = new AlertDialog.Builder(that);
+                        helpBuilder.setTitle("Please put your comment");
+                        final EditText input = new EditText(that);
+                        helpBuilder.setView(input);
+                        helpBuilder.setPositiveButton("Ok",
+                                new DialogInterface.OnClickListener() {
+
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        String m_Text = input.getText().toString();
+                                    }
+                                });
+                        helpBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                            }
+                        });
+
+                        // Remember, create doesn't show the dialog
+                        AlertDialog helpDialog = helpBuilder.create();
+                        helpDialog.show();
+
+
+
                         return false; // true to keep the Speed Dial open
                     default:
                         return false;
