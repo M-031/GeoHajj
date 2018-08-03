@@ -3,14 +3,19 @@ package com.example.majed.geohajj;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -19,24 +24,26 @@ import android.webkit.WebView;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.leinardi.android.speeddial.SpeedDialActionItem;
 import com.leinardi.android.speeddial.SpeedDialView;
+
 import android.view.View;
 import android.view.WindowManager;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
-
-
-
 
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener,
@@ -62,6 +69,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final long MIN_TIME = 400;
     private static final float MIN_DISTANCE = 1000;
     private GoogleMap mMap;
+    FusedLocationProviderClient mFusedLocationClient;
 
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -77,17 +85,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                 LOCATION_PERMISSION_REQUEST_CODE);
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME, MIN_DISTANCE, this);
     }
 
@@ -104,10 +103,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
         createMenu();
     }
 
@@ -183,19 +179,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    public void onProviderEnabled(String provider) { }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) { }
-
-    @Override
-    public void onProviderDisabled(String provider) { }
-    public boolean shouldOverrideUrlLoading(WebView view, String url) {
-        view.loadUrl(url);
-        return true;
+    public void onProviderEnabled(String provider) {
     }
 
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+    }
 
+    @Override
+    public void onProviderDisabled(String provider) {
+    }
 
     public void createMenu() {
 
@@ -203,7 +196,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         SpeedDialView speedDialView = findViewById(R.id.speedDial);
         speedDialView.addActionItem(
 
-        new SpeedDialActionItem.Builder(R.id.fab_bus, R.drawable.ic_bus).create()
+                new SpeedDialActionItem.Builder(R.id.fab_bus, R.drawable.ic_bus).create()
         );
         speedDialView.addActionItem(
                 new SpeedDialActionItem.Builder(R.id.fab_camp, R.drawable.ic_camp).create()
@@ -221,37 +214,78 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public boolean onActionSelected(SpeedDialActionItem speedDialActionItem) {
                 switch (speedDialActionItem.getId()) {
                     case R.id.fab_bus:
-                        AlertDialog.Builder helpBuilder = new AlertDialog.Builder(that);
-                        helpBuilder.setTitle("Please put your comment");
-                        final EditText input = new EditText(that);
-                        helpBuilder.setView(input);
-                        helpBuilder.setPositiveButton("Ok",
-                                new DialogInterface.OnClickListener() {
-
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        String m_Text = input.getText().toString();
-                                    }
-                                });
-                        helpBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                            }
-                        });
-
-                        // Remember, create doesn't show the dialog
-                        AlertDialog helpDialog = helpBuilder.create();
-                        helpDialog.show();
-
-
-
-                        return false; // true to keep the Speed Dial open
-                    default:
+                        placePin(that,R.drawable.ic_bus);
                         return false;
+                    case R.id.fab_camp:
+                        placePin(that,R.drawable.ic_camp);
+                        return false;
+
+                    case R.id.fab_resturant:
+                        placePin(that,R.drawable.ic_resturant);
+                        return false;
+
+                    case R.id.fab_metro:
+                        placePin(that,R.drawable.ic_metro);
+                        return false;
+
+                    default:
+                        return false; // true to keep the Speed Dial open
                 }
             }
         });
     }
 
+    private void placePin(final MapsActivity that, @DrawableRes final int icon) {
+        final String[] mLabel = new String[1];
+        final EditText input = new EditText(that);
+        AlertDialog.Builder helpBuilder = new AlertDialog.Builder(that)
+                .setTitle("Please put your comment")
+                .setView(input).setPositiveButton("Ok",
+                new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        mLabel[0] = input.getText().toString();
+                        createMarker(mLabel, that, icon);
+                    }
+                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        // Remember, create doesn't show the dialog
+        AlertDialog helpDialog = helpBuilder.create();
+        helpDialog.show();
+    }
+
+    private void createMarker(final String[] mLabel, final MapsActivity that, @DrawableRes final int icon) {
+        OnSuccessListener OSL = new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+
+                if (location != null) {
+                    mMap.addMarker(
+                            new MarkerOptions()
+                                    .position(
+                                            new LatLng(location.getLatitude(), location.getLongitude())
+                                    ).title(mLabel[0])
+                                    .icon(bitmapDescriptorFromVector(that, icon))
+                    );
+                }
+            }
+        };
+        mFusedLocationClient.getLastLocation()
+                .addOnSuccessListener(that, OSL);
+    }
+
+    private BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
+        Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
+        vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
+        Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        vectorDrawable.draw(canvas);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
 
 }
