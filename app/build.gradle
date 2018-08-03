@@ -35,5 +35,7 @@ dependencies {
     implementation "com.leinardi.android:speed-dial:1.0.2"
     compile 'com.google.android.gms:play-services-maps:15.0.1'
     compile 'com.google.android.gms:play-services-location:15.0.1'
+    compile 'com.google.android.gms:play-services-nearby:15.0.1'
+    compile 'com.google.code.gson:gson:2.8.0'
 
 }
